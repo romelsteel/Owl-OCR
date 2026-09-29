@@ -1,0 +1,35 @@
+/* Setup wizard (plan D). Uses the colour variables of style.css, so both themes work. */
+.wz { max-width: 760px; padding: 4px 0 24px; line-height: 1.5; }
+.wz-header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 14px; }
+.wz-header h2 { font-size: 1.1rem; margin: 0; flex: 1 1 auto; }
+.wz-steps { color: var(--muted); font-size: 0.8rem; }
+.wz h3 { font-size: 1rem; margin: 0 0 10px; }
+.wz p { margin: 0 0 10px; max-width: 70ch; }
+.wz-muted { color: var(--muted); font-size: 0.87rem; }
+.wz-warning { color: var(--warn); border-left: 4px solid var(--warn); padding: 6px 10px; background: var(--panel-2); }
+.wz-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0 0 12px; }
+.wz-facts dt { font-weight: 600; }
+.wz-facts dd { margin: 0; }
+.wz-path { font-family: Consolas, monospace; word-break: break-all; }
+.wz-check { display: block; margin: 8px 0 4px; font-size: 0.87rem; }
+.wz-busy { font-style: italic; }
+.wz-buttons { margin-top: 18px; }
+.wz-notice { padding: 8px 12px; margin: 0 0 12px; border-radius: 6px; background: var(--panel-2); }
+.wz-error { border-left: 4px solid var(--err); }
+.wz-info { border-left: 4px solid var(--ok); }
+.wz-detail { font-family: Consolas, monospace; font-size: 0.75rem; word-break: break-all; opacity: 0.85; }
+.wz-stages { list-style: none; padding: 0; margin: 10px 0; }
+.wz-stage { display: grid; grid-template-columns: 1fr max-content; gap: 2px 12px; padding: 6px 0;
+  border-bottom: 1px solid var(--border); }
+.wz-stage-state { font-size: 0.8rem; color: var(--muted); }
+.wz-stage-detail { grid-column: 1 / 3; font-size: 0.8rem; }
+.wz-stage-detail progress { width: 100%; height: 10px; display: block; margin: 4px 0; accent-color: var(--accent); }
+.wz-done .wz-stage-state, .wz-skipped .wz-stage-state { color: var(--ok); }
+.wz-failed .wz-stage-state { color: var(--err); font-weight: 600; }
+.wz-progress .wz-stage-name, .wz-start .wz-stage-name { font-weight: 600; }
+.wz-dicts { list-style: none; padding: 0; margin: 10px 0; }
+.wz-dict { display: grid; grid-template-columns: 1fr max-content max-content; gap: 4px 12px; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid var(--border); }
+.wz-dict progress, .wz-dict .wz-notice { grid-column: 1 / 4; width: 100%; }
+.wz-dicts-panel { margin-top: 22px; max-width: 760px; }

@@ -1,0 +1,20 @@
+# Engine runtime, installed by plan D into <data root>\engine\venv (design 5.1).
+# torch and torchvision come first, from the PyTorch index of the hardware tier:
+#   uv pip install torch==2.10.0 torchvision==0.25.0 --index-url https://download.pytorch.org/whl/cu128
+# then:
+#   uv pip install -r requirements-engine.txt
+# transformers must stay 4.57.1: 5.x breaks the model's imports.
+transformers==4.57.1
+tokenizers>=0.22,<0.23
+huggingface_hub>=0.34,<1.0
+safetensors>=0.4.3
+accelerate
+Pillow==12.1.1
+einops==0.8.2
+addict==2.4.0
+easydict==1.13
+matplotlib==3.10.8
+psutil==7.2.2
+numpy<3
+requests
+tqdm

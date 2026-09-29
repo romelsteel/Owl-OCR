@@ -1,0 +1,7 @@
+<|det|>text [85, 77, 352, 96]<|/det|>Våžená paní doktorko Šťastná,
+<|det|>text [85, 102, 867, 194]<|/det|>dovoluji si Vás požádat o vytavení lékařské zprávy pro pana Řehoře Dvořáka, narozeného 17. března 1968 v Žďáru nad Sázavou. Pacient podstoupil ve dnech 4.-19. září 2026 celkem dvanáct ponorů v hyperbarické komoře a při každém z nich dýchal čistý kyslík po dobu devadesáti minut.
+<|det|>text [89, 201, 874, 268]<|/det|>Během léčby si stěžoval na přechodné zaléhání v uších, které vždy odeznělo do několika hodin. Krevní tlak se pohyboval v rozmezí 125/80 až 138/86 Mm Hg, tepová frekvence mezi 62 a 74 údery za minutu. Žádné závažné nežádoucí účinky jsme nezaznamenali.
+<|det|>text [92, 277, 855, 325]<|/det|>Doporučujeme pokračovat v rehabilitaci, omezit kouření a za šest týdnů přijít na kontrolní vyšetření. Účet za léčbu ve výši 18 450 Kč byl uhrozen pojišťovnou.
+<|det|>text [95, 341, 165, 357]<|/det|>S úctou
+<|det|>text [95, 371, 355, 390]<|/det|>MUDr. Čeněk Růžička, Ph.D.
+<|det|>text [95, 404, 356, 424]<|/det|>Ústí nad Labem, 28. září 2026

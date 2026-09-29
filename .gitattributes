@@ -1,0 +1,2 @@
+# Licence texts are copied byte for byte and checked by sha256: never convert line endings.
+licenses/*.txt -text

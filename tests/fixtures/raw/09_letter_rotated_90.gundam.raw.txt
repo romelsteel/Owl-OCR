@@ -1,0 +1,7 @@
+<|det|>text [73, 128, 168, 899]<|/det|>dovoli i s i v s podačat o vystaveni lekaške zpravy pro para Rehove Dvořáka, narozeného 17. hvězna 1968 v Ždram nad Sázavou. Pacient podstoupí ve dnech 4.-19. záh 2026 celkem dvacnat ponoru i vyperbarček konorie a pri každém z nich dychal čistý kyslík pod obu dešvadesií minnit.
+<|det|>text [178, 128, 215, 899]<|/det|>Během lieby si zizezoval na prechodu zalianní v úsích, které vždy oddenilo do nekolika hodin. Krevní tlak se pohyoval v tzomež 125/80 až 138/86 mm Hg, tepová frekvence mezi
+<|det|>text [224, 128, 264, 899]<|/det|>62 a 74 duery za minnuti. Záváme nezadnou úsníky jsme nezamavali.
+<|det|>text [279, 128, 321, 899]<|/det|>Doporučujeme pokracovat ve-rehabilitaci, omežit kontein a zast studyu přijít na konchoní vyššetření. Učitá zala liežbu ve výši 18 450 Kč byl uhrazen polisírovnou.
+<|det|>text [336, 128, 365, 899]<|/det|>Suetooth MUDr: Čeitek Růžička, Ph.D. 2026
+<|det|>text [371, 648, 390, 899]<|/det|>Ušit nad Labem, 28, žaíň 2026
+<|det|>text [396, 631, 415, 899]<|/det|>[Non-Text]

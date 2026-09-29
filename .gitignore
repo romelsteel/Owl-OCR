@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+.pytest_cache/
+/build/
+/dist/
+*.spec.bak
+
+# Model weights and the development engine: never commit (GBs).
+# Anchored to the repository root: a bare "engine/" would also hide the owlocr/engine package.
+/models/
+/engine/
+*.safetensors
+*.bin
+*.gguf
+
+# App output / runtime
+/output/
+*.log
+settings.local.json
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+
+# Claude Code session files
+.claude/
+.superpowers/
+
+# Spike / test data (samples/ holds a copyrighted textbook: never commit anything from it)
+samples/
+spike/out/

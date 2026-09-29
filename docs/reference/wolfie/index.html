@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF → Markdown</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1a56db;
+    --blue-dark: #1240a8;
+    --blue-light: #e8edff;
+    --ok: #16a34a;
+    --err: #dc2626;
+    /* světlý motiv */
+    --bg: #f0f2f5;
+    --text: #222;
+    --panel: #ffffff;
+    --panel-2: #fafbff;
+    --border: #dde1e7;
+    --muted: #777;
+    --code-bg: #fdfdfd;
+    --code-text: #1a1a1a;
+    --toast-bg: #222;
+    --toast-text: #fff;
+    --chev: #aaa;
+    --ok-bg: #dcfce7;
+    --err-bg: #fee2e2;
+  }
+  [data-theme="dark"] {
+    --blue: #2563eb;
+    --blue-dark: #1d4ed8;
+    --blue-light: #1e2a4d;
+    --bg: #0f1117;
+    --text: #e6e8ee;
+    --panel: #1a1d27;
+    --panel-2: #232735;
+    --border: #2c3140;
+    --muted: #9aa3b2;
+    --code-bg: #11141c;
+    --code-text: #d6dae3;
+    --toast-bg: #2a2f3c;
+    --toast-text: #fff;
+    --chev: #6b7280;
+    --ok-bg: #14331f;
+    --err-bg: #3a1c1c;
+  }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: background 0.2s, color 0.2s; }
+
+  header {
+    background: var(--blue);
+    color: white;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header .sub { font-size: 0.78rem; opacity: 0.85; }
+  .hdr-controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .ctrl {
+    background: rgba(255,255,255,0.15); color: white;
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 6px;
+    padding: 5px 9px; font-size: 0.8rem; font-family: inherit; cursor: pointer;
+  }
+  .ctrl:hover { background: rgba(255,255,255,0.25); }
+  .ctrl option { color: #111; }
+
+  /* pixel-art vlk maskot */
+  .bot { width: 32px; height: 32px; image-rendering: pixelated; cursor: pointer; transition: transform 0.15s; }
+  .bot:hover { transform: translateY(-2px) rotate(-4deg); }
+  .bot.spin { animation: botscan 0.7s steps(2) infinite; }
+  @keyframes botscan { 50% { transform: translateY(-3px); } }
+
+  main { max-width: 980px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  /* dropzone */
+  .drop {
+    border: 2px dashed var(--border);
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .drop:hover { border-color: var(--blue); background: var(--panel-2); }
+  .drop.over { border-color: var(--blue); background: var(--blue-light); transform: scale(1.005); }
+  .drop .big { font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
+  .drop .small { font-size: 0.82rem; color: var(--muted); }
+  .drop .formats { font-size: 0.72rem; color: var(--muted); opacity: 0.8; margin-top: 10px; }
+
+  /* nastavení nad seznamem */
+  .options { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin: 14px 2px 0; font-size: 0.82rem; color: var(--text); }
+  .options label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .options select { font-family: inherit; font-size: 0.8rem; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+
+  /* toolbar */
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 10px; align-items: center; }
+  .toolbar .count { font-size: 0.85rem; color: var(--muted); margin-right: auto; }
+  button {
+    font-family: inherit; font-size: 0.85rem; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+    padding: 8px 14px; border-radius: 7px; transition: all 0.12s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  button:hover:not(:disabled) { background: var(--panel-2); border-color: var(--blue); }
+  button.primary { background: var(--blue); border-color: var(--blue); color: white; }
+  button.primary:hover:not(:disabled) { background: var(--blue-dark); }
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  /* result cards */
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .card-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; cursor: pointer; user-select: none;
+  }
+  .card-head:hover { background: var(--panel-2); }
+  .card-head .name { font-weight: 600; font-size: 0.92rem; flex: 1; word-break: break-all; }
+  .card-head .meta { font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
+  .badge { font-size: 0.68rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+  .badge.ok { background: var(--ok-bg); color: var(--ok); }
+  .badge.err { background: var(--err-bg); color: var(--err); }
+  .chev { transition: transform 0.15s; color: var(--chev); font-size: 0.8rem; }
+  .card.open .chev { transform: rotate(90deg); }
+
+  .card-body { display: none; border-top: 1px solid var(--border); }
+  .card.open .card-body { display: block; }
+  .card-actions { display: flex; gap: 8px; padding: 10px 14px; flex-wrap: wrap; background: var(--panel-2); }
+  textarea {
+    width: 100%; border: none; padding: 14px; font-family: 'Consolas','Courier New',monospace;
+    font-size: 0.82rem; line-height: 1.5; resize: vertical; min-height: 220px;
+    color: var(--code-text); background: var(--code-bg); outline: none;
+  }
+  .err-msg { padding: 14px; color: var(--err); font-size: 0.85rem; }
+
+  /* AI rozdělení na části */
+  .chunks { padding: 4px 14px 12px; background: var(--panel-2); border-top: 1px solid var(--border); }
+  .chunk { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.8rem; }
+  .chunk .lbl { color: var(--muted); flex: 1; }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--toast-bg); color: var(--toast-text); padding: 11px 20px; border-radius: 8px;
+    font-size: 0.85rem; opacity: 0; transition: all 0.25s; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 50;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .empty { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 30px 0; }
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <!-- pixel-art vlk „MarkWolf“ -->
+  <svg class="bot" id="bot" viewBox="0 0 16 16" shape-rendering="crispEdges" title="Vlk">
+    <rect x="3" y="0" width="1" height="1" fill="#262834"/><rect x="12" y="0" width="1" height="1" fill="#262834"/>
+    <rect x="2" y="1" width="1" height="1" fill="#262834"/><rect x="3" y="1" width="1" height="1" fill="#707886"/><rect x="4" y="1" width="1" height="1" fill="#262834"/><rect x="11" y="1" width="1" height="1" fill="#262834"/><rect x="12" y="1" width="1" height="1" fill="#707886"/><rect x="13" y="1" width="1" height="1" fill="#262834"/>
+    <rect x="2" y="2" width="1" height="1" fill="#262834"/><rect x="3" y="2" width="1" height="1" fill="#707886"/><rect x="4" y="2" width="1" height="1" fill="#707886"/><rect x="5" y="2" width="1" height="1" fill="#262834"/><rect x="10" y="2" width="1" height="1" fill="#262834"/><rect x="11" y="2" width="1" height="1" fill="#707886"/><rect x="12" y="2" width="1" height="1" fill="#707886"/><rect x="13" y="2" width="1" height="1" fill="#262834"/>
+    <rect x="2" y="3" width="1" height="1" fill="#262834"/><rect x="3" y="3" width="1" height="1" fill="#707886"/><rect x="4" y="3" width="1" height="1" fill="#707886"/><rect x="5" y="3" width="1" height="1" fill="#262834"/><rect x="6" y="3" width="1" height="1" fill="#262834"/><rect x="9" y="3" width="1" height="1" fill="#262834"/><rect x="10" y="3" width="1" height="1" fill="#262834"/><rect x="11" y="3" width="1" height="1" fill="#707886"/><rect x="12" y="3" width="1" height="1" fill="#707886"/><rect x="13" y="3" width="1" height="1" fill="#262834"/>
+    <rect x="1" y="4" width="1" height="1" fill="#262834"/><rect x="2" y="4" width="1" height="1" fill="#707886"/><rect x="3" y="4" width="1" height="1" fill="#707886"/><rect x="4" y="4" width="1" height="1" fill="#707886"/><rect x="5" y="4" width="1" height="1" fill="#707886"/><rect x="6" y="4" width="1" height="1" fill="#262834"/><rect x="7" y="4" width="1" height="1" fill="#262834"/><rect x="8" y="4" width="1" height="1" fill="#262834"/><rect x="9" y="4" width="1" height="1" fill="#262834"/><rect x="10" y="4" width="1" height="1" fill="#707886"/><rect x="11" y="4" width="1" height="1" fill="#707886"/><rect x="12" y="4" width="1" height="1" fill="#707886"/><rect x="13" y="4" width="1" height="1" fill="#707886"/><rect x="14" y="4" width="1" height="1" fill="#262834"/>
+    <rect x="1" y="5" width="1" height="1" fill="#262834"/><rect x="2" y="5" width="11" height="1" fill="#707886"/><rect x="14" y="5" width="1" height="1" fill="#262834"/>
+    <rect x="1" y="6" width="1" height="1" fill="#262834"/><rect x="2" y="6" width="1" height="1" fill="#707886"/><rect x="3" y="6" width="2" height="1" fill="#ffc440"/><rect x="5" y="6" width="6" height="1" fill="#707886"/><rect x="11" y="6" width="2" height="1" fill="#ffc440"/><rect x="13" y="6" width="1" height="1" fill="#707886"/><rect x="14" y="6" width="1" height="1" fill="#262834"/>
+    <rect x="1" y="7" width="1" height="1" fill="#262834"/><rect x="2" y="7" width="1" height="1" fill="#707886"/><rect x="3" y="7" width="2" height="1" fill="#ffc440"/><rect x="5" y="7" width="1" height="1" fill="#707886"/><rect x="6" y="7" width="4" height="1" fill="#4e5462"/><rect x="10" y="7" width="1" height="1" fill="#707886"/><rect x="11" y="7" width="2" height="1" fill="#ffc440"/><rect x="13" y="7" width="1" height="1" fill="#707886"/><rect x="14" y="7" width="1" height="1" fill="#262834"/>
+    <rect x="1" y="8" width="1" height="1" fill="#262834"/><rect x="2" y="8" width="4" height="1" fill="#707886"/><rect x="6" y="8" width="5" height="1" fill="#4e5462"/><rect x="11" y="8" width="3" height="1" fill="#707886"/><rect x="14" y="8" width="1" height="1" fill="#262834"/>
+    <rect x="1" y="9" width="1" height="1" fill="#262834"/><rect x="2" y="9" width="1" height="1" fill="#a8b0be"/><rect x="3" y="9" width="4" height="1" fill="#707886"/><rect x="7" y="9" width="2" height="1" fill="#4e5462"/><rect x="9" y="9" width="4" height="1" fill="#707886"/><rect x="13" y="9" width="1" height="1" fill="#a8b0be"/><rect x="14" y="9" width="1" height="1" fill="#262834"/>
+    <rect x="2" y="10" width="1" height="1" fill="#262834"/><rect x="3" y="10" width="1" height="1" fill="#a8b0be"/><rect x="4" y="10" width="2" height="1" fill="#707886"/><rect x="6" y="10" width="4" height="1" fill="#eceff4"/><rect x="10" y="10" width="2" height="1" fill="#707886"/><rect x="12" y="10" width="1" height="1" fill="#a8b0be"/><rect x="13" y="10" width="1" height="1" fill="#262834"/>
+    <rect x="3" y="11" width="1" height="1" fill="#262834"/><rect x="4" y="11" width="2" height="1" fill="#707886"/><rect x="6" y="11" width="4" height="1" fill="#eceff4"/><rect x="10" y="11" width="2" height="1" fill="#707886"/><rect x="12" y="11" width="1" height="1" fill="#262834"/>
+    <rect x="4" y="12" width="1" height="1" fill="#262834"/><rect x="5" y="12" width="2" height="1" fill="#eceff4"/><rect x="7" y="12" width="2" height="1" fill="#16161e"/><rect x="9" y="12" width="2" height="1" fill="#eceff4"/><rect x="11" y="12" width="1" height="1" fill="#262834"/>
+    <rect x="5" y="13" width="1" height="1" fill="#262834"/><rect x="6" y="13" width="4" height="1" fill="#eceff4"/><rect x="10" y="13" width="1" height="1" fill="#262834"/>
+    <rect x="6" y="14" width="1" height="1" fill="#262834"/><rect x="7" y="14" width="2" height="1" fill="#16161e"/><rect x="9" y="14" width="1" height="1" fill="#262834"/>
+    <rect x="7" y="15" width="2" height="1" fill="#262834"/>
+  </svg>
+  <h1 data-i18n="title">PDF → Markdown</h1>
+  <span class="sub" data-i18n="sub">pohání Microsoft MarkItDown</span>
+  <div class="hdr-controls">
+    <select id="langSel" class="ctrl" title="Language / Jazyk">
+      <option value="cs">🇨🇿 Čeština</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
+    <button id="themeBtn" class="ctrl" title="Light / Dark">🌙</button>
+  </div>
+</header>
+
+<main>
+  <div class="drop" id="drop">
+    <div class="big" data-i18n="drop_big">Přetáhni sem soubory nebo klikni pro výběr</div>
+    <div class="small" data-i18n="drop_small">Převede je na Markdown, který rovnou vložíš do AI</div>
+    <div class="formats" data-i18n="formats">PDF · Word · PowerPoint · Excel · obrázky · HTML · …</div>
+  </div>
+  <input type="file" id="fileInput" multiple>
+
+  <div class="options">
+    <label><input type="checkbox" id="cleanToggle"> <span data-i18n="clean_label">🧹 Vyčistit text (opravit PDF artefakty)</span></label>
+    <label><input type="checkbox" id="splitToggle"> <span data-i18n="split_toggle">✂️ Rozdělit pro AI (po částech)</span></label>
+    <label id="chunkSizeWrap" style="display:none">
+      <span data-i18n="chunk_size_label">Velikost části:</span>
+      <select id="chunkSize">
+        <option value="1500">~1 500 tokenů</option>
+        <option value="3000" selected>~3 000 tokenů</option>
+        <option value="6000">~6 000 tokenů</option>
+        <option value="12000">~12 000 tokenů</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="toolbar" id="toolbar" style="display:none">
+    <span class="count" id="count"></span>
+    <button id="copyAll">📋 <span data-i18n="copy_all">Kopírovat vše</span></button>
+    <button id="saveDisk">💾 <span data-i18n="save_disk">Uložit do output/</span></button>
+    <button id="downloadZip">⬇️ <span data-i18n="download_zip">Stáhnout vše (zip)</span></button>
+    <button id="clear">🗑️ <span data-i18n="clear">Vyčistit</span></button>
+  </div>
+
+  <div id="results"></div>
+  <div class="empty" id="empty" data-i18n="empty">Zatím nic převedeného.</div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Aplikace funguje přes http://127.0.0.1:5000 i dvojklikem na HTML (file://).
+// Když nás obsluhuje vlastní lokální server (jakýkoli localhost port), stačí
+// relativní cesty; jinak míříme natvrdo na běžící server.
+const isLocalServer = /^(127\.0\.0\.1|localhost)(:\d+)?$/.test(location.host);
+const API = isLocalServer ? '' : 'http://127.0.0.1:5000';
+
+// ── překlady ────────────────────────────────────────────────────────────
+const I18N = {
+  cs: {
+    title: 'PDF → Markdown',
+    sub: 'pohání Microsoft MarkItDown',
+    drop_big: 'Přetáhni sem soubory nebo klikni pro výběr',
+    drop_small: 'Převede je na Markdown, který rovnou vložíš do AI',
+    formats: 'PDF · Word · PowerPoint · Excel · obrázky · HTML · …',
+    clean_label: '🧹 Vyčistit text (opravit PDF artefakty)',
+    split_toggle: '✂️ Rozdělit pro AI (po částech)',
+    chunk_size_label: 'Velikost části:',
+    copy_all: 'Kopírovat vše', save_disk: 'Uložit do output/',
+    download_zip: 'Stáhnout vše (zip)', clear: 'Vyčistit',
+    empty: 'Zatím nic převedeného.',
+    converting: 'Převádím… ⏳',
+    copy: 'Kopírovat', download_md: 'Stáhnout .md', split: 'Rozdělit pro AI',
+    chars_unit: 'znaků', tokens_unit: 'tokenů',
+    ok: 'OK', err: 'CHYBA',
+    count_summary: '{files} souborů · {ok} OK · ~{tokens} tokenů celkem',
+    part: 'Část {i}/{n} (~{tokens} tok.)',
+    t_done: 'Hotovo: {n} souborů', t_error: 'Chyba: {e}',
+    t_copied: 'Zkopírováno ✓', t_copyfail: 'Kopírování selhalo',
+    t_nodl: 'Nic ke stažení', t_nosave: 'Nic k uložení',
+    t_saved: 'Uloženo {n} souborů do output/',
+    drop_hint: '🐺 Klikni do pole a vyber soubory (přetažení sem okno nepřevezme).',
+    howl: '🐺 Auuuuu! Vlk zavyl.',
+  },
+  en: {
+    title: 'PDF → Markdown',
+    sub: 'powered by Microsoft MarkItDown',
+    drop_big: 'Drag files here or click to choose',
+    drop_small: 'Turns them into Markdown you can paste straight into an AI',
+    formats: 'PDF · Word · PowerPoint · Excel · images · HTML · …',
+    clean_label: '🧹 Clean up text (fix PDF artifacts)',
+    split_toggle: '✂️ Split for AI (in chunks)',
+    chunk_size_label: 'Chunk size:',
+    copy_all: 'Copy all', save_disk: 'Save to output/',
+    download_zip: 'Download all (zip)', clear: 'Clear',
+    empty: 'Nothing converted yet.',
+    converting: 'Converting… ⏳',
+    copy: 'Copy', download_md: 'Download .md', split: 'Split for AI',
+    chars_unit: 'chars', tokens_unit: 'tokens',
+    ok: 'OK', err: 'ERROR',
+    count_summary: '{files} files · {ok} OK · ~{tokens} tokens total',
+    part: 'Part {i}/{n} (~{tokens} tok.)',
+    t_done: 'Done: {n} files', t_error: 'Error: {e}',
+    t_copied: 'Copied ✓', t_copyfail: 'Copy failed',
+    t_nodl: 'Nothing to download', t_nosave: 'Nothing to save',
+    t_saved: 'Saved {n} files to output/',
+    drop_hint: '🐺 Click the box and pick files (the window can\'t catch the drop).',
+    howl: '🐺 Awooo! The wolf howled.',
+  },
+};
+let LANG = localStorage.getItem('lang') || 'cs';
+function t(key, vars) {
+  let s = (I18N[LANG] && I18N[LANG][key]) || I18N.cs[key] || key;
+  if (vars) for (const k in vars) s = s.replaceAll('{' + k + '}', vars[k]);
+  return s;
+}
+function nfmt(n) { return Number(n).toLocaleString(LANG === 'cs' ? 'cs-CZ' : 'en-US'); }
+function tokensOf(text) { return Math.round((text || '').length / 4); } // hrubý odhad
+
+const drop = document.getElementById('drop');
+const dropBig = drop.querySelector('.big');
+const fileInput = document.getElementById('fileInput');
+const resultsEl = document.getElementById('results');
+const emptyEl = document.getElementById('empty');
+const toolbar = document.getElementById('toolbar');
+const countEl = document.getElementById('count');
+const bot = document.getElementById('bot');
+const langSel = document.getElementById('langSel');
+const themeBtn = document.getElementById('themeBtn');
+const cleanToggle = document.getElementById('cleanToggle');
+const splitToggle = document.getElementById('splitToggle');
+const chunkSizeSel = document.getElementById('chunkSize');
+const chunkSizeWrap = document.getElementById('chunkSizeWrap');
+let items = [];          // {id, name, md_name, markdown, ok, error}
+let converting = false;
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── motiv (světlý/tmavý) ──
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('theme', theme);
+}
+themeBtn.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+});
+
+// ── jazyk ──
+function applyLang(lang) {
+  LANG = lang;
+  localStorage.setItem('lang', lang);
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  // části mimo [data-i18n], které je třeba přeložit ručně
+  document.title = t('title');
+  [...chunkSizeSel.options].forEach(o => {
+    o.textContent = '~' + nfmt(parseInt(o.value, 10)) + ' ' + t('tokens_unit');
+  });
+  langSel.value = lang;
+  if (!converting) dropBig.textContent = t('drop_big');
+  render();
+}
+langSel.addEventListener('change', () => applyLang(langSel.value));
+
+// ── nastavení (clean, velikost části) si pamatujeme ──
+cleanToggle.checked = localStorage.getItem('clean') !== 'false'; // výchozí: zapnuto
+cleanToggle.addEventListener('change', () => localStorage.setItem('clean', cleanToggle.checked));
+chunkSizeSel.value = localStorage.getItem('chunkSize') || '3000';
+chunkSizeSel.addEventListener('change', () => localStorage.setItem('chunkSize', chunkSizeSel.value));
+// rozdělení na části pro AI – nepovinné, výchozí vypnuto
+function updateSplitUI() { chunkSizeWrap.style.display = splitToggle.checked ? 'inline-flex' : 'none'; }
+splitToggle.checked = localStorage.getItem('split') === 'true';
+splitToggle.addEventListener('change', () => {
+  localStorage.setItem('split', splitToggle.checked);
+  updateSplitUI();
+  render();
+});
+updateSplitUI();
+
+// ── výběr souborů (klik) ──
+// Běžíme-li v nativním okně (pywebview), použijeme systémový dialog – uvnitř
+// WebView2 je spolehlivější než <input type=file> a nikdy soubor „neotevře“.
+function isPywebview() {
+  return !!(window.pywebview && window.pywebview.api && window.pywebview.api.pick_files);
+}
+drop.addEventListener('click', async () => {
+  if (isPywebview()) {
+    try {
+      const paths = await window.pywebview.api.pick_files();
+      if (paths && paths.length) uploadPaths(paths);
+      return;
+    } catch (err) { /* když dialog selže, spadneme na <input type=file> */ }
+  }
+  fileInput.click();
+});
+fileInput.addEventListener('change', e => { upload([...e.target.files]); fileInput.value = ''; });
+
+// ── drag & drop ──
+// DŮLEŽITÉ: bez preventDefault by okno/prohlížeč přetažený soubor jen OTEVŘELO
+// (zobrazilo PDF) místo převodu. Odchytneme drag&drop na celém okně a soubory
+// puštěné kdekoli předáme k převodu.
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev =>
+  window.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
+window.addEventListener('dragover', e => {
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+  drop.classList.add('over');
+});
+window.addEventListener('dragleave', e => { if (!e.relatedTarget) drop.classList.remove('over'); });
+window.addEventListener('drop', e => {
+  drop.classList.remove('over');
+  const files = e.dataTransfer && e.dataTransfer.files;
+  if (files && files.length) { upload([...files]); return; }
+  // V nativním okně se přetažení souborů z Průzkumníka občas nepřenese do
+  // JavaScriptu – poradíme uživateli klik (ten otevře systémový dialog).
+  if (isPywebview()) toast(t('drop_hint'));
+});
+
+function applyResults(data) {
+  if (data.error) { toast(data.error); return; }
+  data.results.forEach(res => items.push(res));
+  render();
+  toast(t('t_done', { n: data.results.length }));
+}
+
+// Společný „obal“ kolem převodu: točící se vlk, hláška, ošetření chyby.
+async function runConvert(doFetch) {
+  converting = true;
+  bot.classList.add('spin');
+  dropBig.textContent = t('converting');
+  try {
+    const r = await doFetch();
+    applyResults(await r.json());
+  } catch (err) {
+    toast(t('t_error', { e: err }));
+  } finally {
+    converting = false;
+    bot.classList.remove('spin');
+    dropBig.textContent = t('drop_big');
+  }
+}
+
+// Převod nahraných souborů (drag&drop nebo <input type=file>).
+async function upload(files) {
+  if (!files.length) return;
+  const fd = new FormData();
+  files.forEach(f => fd.append('files', f));
+  fd.append('clean', cleanToggle.checked ? 'true' : 'false');
+  await runConvert(() => fetch(API + '/convert', { method: 'POST', body: fd }));
+}
+
+// Převod podle cest na disku (z nativního dialogu pywebview).
+async function uploadPaths(paths) {
+  if (!paths || !paths.length) return;
+  await runConvert(() => fetch(API + '/convert_paths', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths, clean: cleanToggle.checked }),
+  }));
+}
+
+function render() {
+  resultsEl.innerHTML = '';
+  if (!items.length) {
+    emptyEl.style.display = 'block';
+    toolbar.style.display = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  toolbar.style.display = 'flex';
+  const okItems = items.filter(i => i.ok);
+  const totalTokens = okItems.reduce((s, i) => s + tokensOf(i.markdown), 0);
+  countEl.textContent = t('count_summary', { files: items.length, ok: okItems.length, tokens: nfmt(totalTokens) });
+
+  items.forEach(it => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const head = document.createElement('div');
+    head.className = 'card-head';
+    if (it.ok) {
+      head.innerHTML =
+        `<span class="chev">▶</span><span class="name">${esc(it.name)}</span>` +
+        `<span class="meta">${nfmt(it.markdown.length)} ${t('chars_unit')} · ~${nfmt(tokensOf(it.markdown))} ${t('tokens_unit')}</span>` +
+        `<span class="badge ok">${t('ok')}</span>`;
+    } else {
+      head.innerHTML =
+        `<span class="chev">▶</span><span class="name">${esc(it.name)}</span>` +
+        `<span class="badge err">${t('err')}</span>`;
+    }
+    head.addEventListener('click', () => card.classList.toggle('open'));
+    card.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    if (it.ok) {
+      const actions = document.createElement('div');
+      actions.className = 'card-actions';
+      actions.append(
+        btn('📋 ' + t('copy'), () => copy(it.markdown)),
+        btn('⬇️ ' + t('download_md'), () => window.open(API + '/download/' + it.id, '_blank')),
+      );
+      if (splitToggle.checked) {
+        actions.append(btn('✂️ ' + t('split'), () => toggleChunks(it, card)));
+      }
+      const ta = document.createElement('textarea');
+      ta.value = it.markdown; ta.readOnly = true;
+      body.append(actions, ta);
+    } else {
+      const e = document.createElement('div');
+      e.className = 'err-msg';
+      e.textContent = '⚠️ ' + it.error;
+      body.appendChild(e);
+    }
+    card.appendChild(body);
+    resultsEl.appendChild(card);
+  });
+}
+
+// ── rozdělení na části pro AI ──
+function splitChunks(md, maxChars) {
+  const paras = md.split(/\n\n+/);
+  const chunks = [];
+  let cur = '';
+  for (const p of paras) {
+    if (cur && (cur.length + 2 + p.length) > maxChars) { chunks.push(cur); cur = ''; }
+    cur = cur ? cur + '\n\n' + p : p;
+    while (cur.length > maxChars) { chunks.push(cur.slice(0, maxChars)); cur = cur.slice(maxChars); }
+  }
+  if (cur) chunks.push(cur);
+  return chunks.length ? chunks : [''];
+}
+
+function toggleChunks(it, card) {
+  const existing = card.querySelector('.chunks');
+  if (existing) { existing.remove(); return; }
+  const maxChars = parseInt(chunkSizeSel.value, 10) * 4;
+  const chunks = splitChunks(it.markdown, maxChars);
+  const box = document.createElement('div');
+  box.className = 'chunks';
+  chunks.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'chunk';
+    const lbl = document.createElement('span');
+    lbl.className = 'lbl';
+    lbl.textContent = t('part', { i: i + 1, n: chunks.length, tokens: nfmt(tokensOf(c)) });
+    row.append(lbl, btn('📋 ' + t('copy'), () => copy(c)));
+    box.appendChild(row);
+  });
+  card.appendChild(box);
+}
+
+function btn(label, fn) {
+  const b = document.createElement('button');
+  b.textContent = label; b.addEventListener('click', e => { e.stopPropagation(); fn(); });
+  return b;
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); toast(t('t_copied')); }
+  catch { toast(t('t_copyfail')); }
+}
+
+// ── toolbar akce ──
+document.getElementById('copyAll').addEventListener('click', () => {
+  const ok = items.filter(i => i.ok);
+  if (!ok.length) return toast(t('t_nodl'));
+  copy(ok.map(i => `# ${i.name}\n\n${i.markdown}`).join('\n\n---\n\n'));
+});
+document.getElementById('downloadZip').addEventListener('click', () => {
+  const ids = items.filter(i => i.ok).map(i => i.id).join(',');
+  if (!ids) return toast(t('t_nodl'));
+  window.open(API + '/download_all?ids=' + ids, '_blank');
+});
+document.getElementById('saveDisk').addEventListener('click', async () => {
+  const ids = items.filter(i => i.ok).map(i => i.id);
+  if (!ids.length) return toast(t('t_nosave'));
+  const r = await fetch(API + '/save_to_disk', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids })
+  });
+  const d = await r.json();
+  toast(t('t_saved', { n: d.saved.length }));
+});
+document.getElementById('clear').addEventListener('click', () => { items = []; render(); });
+
+// ── pixel-art easter egg ──
+let clicks = 0;
+bot.addEventListener('click', () => {
+  clicks++;
+  bot.classList.add('spin');
+  setTimeout(() => bot.classList.remove('spin'), 700);
+  if (clicks === 5) { toast(t('howl')); clicks = 0; }
+});
+
+// ── start ──
+applyTheme(localStorage.getItem('theme') || 'light');
+applyLang(LANG);
+</script>
+</body>
+</html>

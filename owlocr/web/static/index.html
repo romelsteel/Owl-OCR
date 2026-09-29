@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owl OCR</title>
+<link rel="stylesheet" href="static/style.css">
+<link rel="stylesheet" href="static/wizard.css">
+</head>
+<body>
+<header id="hdr">
+  <div id="owl" class="owl" role="button" tabindex="0" data-i18n-title="owl_title" data-i18n-aria="owl_title"></div>
+  <div class="brand">
+    <h1 data-i18n="app_name"></h1>
+    <span class="sub" data-i18n="app_tagline"></span>
+  </div>
+  <div class="engine-box">
+    <span id="engineDot" class="dot"></span>
+    <span class="engine-label" data-i18n="engine_label"></span>
+    <span id="engineState"></span>
+    <span id="engineVram" class="vram"></span>
+    <button id="btnStopEngine" class="ctrl" data-i18n="stop_engine" data-i18n-title="stop_engine_tip" disabled></button>
+  </div>
+  <div id="modeSwitch" class="mode-switch" data-i18n-title="mode_tip">
+    <span class="mode-label" data-i18n="mode_label"></span>
+    <button type="button" class="mode-btn" data-mode="quality" data-i18n="mode_quality"></button>
+    <button type="button" class="mode-btn" data-mode="fast" data-i18n="mode_fast"></button>
+  </div>
+  <nav class="nav">
+    <button type="button" class="ctrl nav-btn" data-view="queue" data-i18n="nav_queue"></button>
+    <button type="button" class="ctrl nav-btn" data-view="settings" data-i18n="nav_settings"></button>
+    <button type="button" class="ctrl nav-btn" data-view="about" data-i18n="nav_about"></button>
+  </nav>
+  <select id="langSel" class="ctrl" data-i18n-title="lang_label">
+    <option value="cs" data-i18n="lang_cs"></option>
+    <option value="en" data-i18n="lang_en"></option>
+  </select>
+  <button id="themeBtn" type="button" class="ctrl" data-i18n-title="theme_tip"></button>
+</header>
+
+<div id="notice" class="notice" hidden>
+  <span id="noticeText"></span>
+  <button id="noticeWizard" type="button" class="link-btn" data-i18n="notice_finish_setup" hidden></button>
+  <button id="noticeClose" type="button" class="link-btn" data-i18n="notice_dismiss"></button>
+</div>
+
+<main>
+  <section id="viewQueue" class="view">
+    <div id="drop" class="drop">
+      <div class="big" data-i18n="drop_big"></div>
+      <div class="small" data-i18n="drop_small"></div>
+      <div class="drop-buttons">
+        <button id="btnAddFiles" type="button" class="primary" data-i18n="add_files"></button>
+        <button id="btnAddFolder" type="button" data-i18n="add_folder"></button>
+      </div>
+      <form id="pathForm" class="path-form">
+        <input id="pathInput" type="text" data-i18n-placeholder="path_placeholder">
+        <button type="submit" data-i18n="add_path"></button>
+      </form>
+    </div>
+
+    <div id="formatsQueue" class="formats">
+      <span class="formats-label" data-i18n="formats_label"></span>
+      <label class="fmt"><input type="checkbox" class="fmt-box" data-fmt="md"><span data-i18n="fmt_md"></span></label>
+      <label class="fmt"><input type="checkbox" class="fmt-box" data-fmt="txt"><span data-i18n="fmt_txt"></span></label>
+      <label class="fmt"><input type="checkbox" class="fmt-box" data-fmt="docx"><span data-i18n="fmt_docx"></span></label>
+      <label class="fmt"><input type="checkbox" class="fmt-box" data-fmt="pdf"><span data-i18n="fmt_pdf"></span></label>
+    </div>
+
+    <div class="toolbar">
+      <span id="queueSummary" class="count"></span>
+      <button id="btnStart" type="button" class="primary"></button>
+      <button id="btnPause" type="button" data-i18n="btn_pause"></button>
+      <button id="btnClear" type="button" data-i18n="btn_clear"></button>
+    </div>
+    <ul id="jobList" class="jobs"></ul>
+    <div id="emptyQueue" class="empty" data-i18n="queue_empty"></div>
+  </section>
+
+  <section id="viewReview" class="view" hidden>
+    <div class="review-bar">
+      <button id="revBack" type="button" data-i18n="rev_back"></button>
+      <span id="revName" class="rev-name"></span>
+      <button id="revPrev" type="button" data-i18n="rev_prev"></button>
+      <span id="revPageLabel" class="rev-page"></span>
+      <button id="revNext" type="button" data-i18n="rev_next"></button>
+      <button id="revExport" type="button" class="primary" data-i18n="rev_export"></button>
+    </div>
+    <div class="rev-notice" data-i18n="rev_unverified"></div>
+    <div id="revInfo" class="rev-info"></div>
+    <div class="review">
+      <div id="revScan" class="rev-scan">
+        <img id="revImg" alt="">
+        <svg id="revBoxes" class="rev-boxes" viewBox="0 0 999 999" preserveAspectRatio="none"></svg>
+      </div>
+      <div id="revText" class="rev-text"></div>
+    </div>
+  </section>
+
+  <section id="viewSettings" class="view" hidden>
+    <h2 data-i18n="settings_title"></h2>
+    <form id="settingsForm" class="settings">
+      <label for="setLanguage" data-i18n="set_language"></label>
+      <select id="setLanguage">
+        <option value="cs" data-i18n="lang_cs"></option>
+        <option value="en" data-i18n="lang_en"></option>
+      </select>
+
+      <label for="setMode" data-i18n="set_mode"></label>
+      <select id="setMode" data-i18n-title="mode_tip">
+        <option value="quality" data-i18n="mode_quality"></option>
+        <option value="fast" data-i18n="mode_fast"></option>
+      </select>
+
+      <label for="setOutputLocation" data-i18n="set_output_location"></label>
+      <select id="setOutputLocation">
+        <option value="next_to_source" data-i18n="out_next"></option>
+        <option value="folder" data-i18n="out_folder"></option>
+      </select>
+
+      <label for="setOutputFolder" data-i18n="set_output_folder"></label>
+      <div class="row">
+        <input id="setOutputFolder" type="text">
+        <button id="btnBrowseOut" type="button" data-i18n="btn_browse"></button>
+      </div>
+
+      <span class="label" data-i18n="set_formats"></span>
+      <div id="formatsSettings" class="formats">
+        <label class="fmt"><input type="checkbox" class="fmt-box" data-fmt="md"><span data-i18n="fmt_md"></span></label>
+        <label class="fmt"><input type="checkbox" class="fmt-box" data-fmt="txt"><span data-i18n="fmt_txt"></span></label>
+        <label class="fmt"><input type="checkbox" class="fmt-box" data-fmt="docx"><span data-i18n="fmt_docx"></span></label>
+        <label class="fmt"><input type="checkbox" class="fmt-box" data-fmt="pdf"><span data-i18n="fmt_pdf"></span></label>
+      </div>
+
+      <label for="setImageLinks" data-i18n="set_image_links"></label>
+      <select id="setImageLinks">
+        <option value="markdown" data-i18n="il_markdown"></option>
+        <option value="obsidian" data-i18n="il_obsidian"></option>
+      </select>
+
+      <label for="setTextLayer" data-i18n="set_text_layer"></label>
+      <select id="setTextLayer">
+        <option value="born_digital" data-i18n="tl_born_digital"></option>
+        <option value="never" data-i18n="tl_never"></option>
+        <option value="always" data-i18n="tl_always"></option>
+      </select>
+
+      <label for="setDocLang" data-i18n="set_doc_lang"></label>
+      <select id="setDocLang">
+        <option value="auto" data-i18n="dl_auto"></option>
+        <option value="cs" data-i18n="dl_cs"></option>
+        <option value="en" data-i18n="dl_en"></option>
+      </select>
+
+      <span class="label" data-i18n="set_checks"></span>
+      <div class="checks">
+        <label><input id="setRepairs" type="checkbox"><span data-i18n="set_repairs"></span></label>
+        <label><input id="setSuspicious" type="checkbox"><span data-i18n="set_suspicious"></span></label>
+        <label><input id="setFurniture" type="checkbox"><span data-i18n="set_furniture"></span></label>
+      </div>
+
+      <label for="setIdle" data-i18n="set_idle"></label>
+      <input id="setIdle" type="number" min="0" max="120" step="1">
+
+      <label for="setTimeLimit" data-i18n="set_time_limit"></label>
+      <input id="setTimeLimit" type="number" min="60" max="1800" step="10">
+
+      <label for="setDpi" data-i18n="set_dpi"></label>
+      <input id="setDpi" type="number" min="150" max="300" step="10">
+
+      <label for="setWords" data-i18n="set_words"></label>
+      <textarea id="setWords" rows="5" data-i18n-title="set_words_tip" data-i18n-placeholder="set_words_tip"></textarea>
+
+      <span></span>
+      <div class="row">
+        <button id="btnSaveSettings" type="submit" class="primary" data-i18n="btn_save"></button>
+        <span id="settingsError" class="error-text"></span>
+      </div>
+    </form>
+
+    <h2 data-i18n="set_engine"></h2>
+    <div class="engine-actions">
+      <button id="btnVerify" type="button" data-i18n="btn_verify"></button>
+      <button id="btnReinstall" type="button" data-i18n="btn_reinstall"></button>
+      <button id="btnMove" type="button" data-i18n="btn_move"></button>
+      <button id="btnRemoveEngine" type="button" data-i18n="btn_remove_engine"></button>
+    </div>
+    <div id="dictSettings" class="wz-dicts-panel"></div>
+  </section>
+
+  <section id="viewAbout" class="view" hidden>
+    <h2 data-i18n="about_title"></h2>
+    <dl class="about">
+      <dt data-i18n="about_version"></dt><dd id="aboutVersion"></dd>
+      <dt data-i18n="about_python"></dt><dd id="aboutPython"></dd>
+      <dt data-i18n="about_engine"></dt><dd id="aboutEngine"></dd>
+      <dt data-i18n="about_revision"></dt><dd id="aboutRevision"></dd>
+      <dt data-i18n="about_state"></dt><dd id="aboutState"></dd>
+      <dt data-i18n="about_data"></dt><dd id="aboutData"></dd>
+      <dt data-i18n="about_logs"></dt><dd id="aboutLogs"></dd>
+    </dl>
+    <div class="row">
+      <button id="btnOpenLogs" type="button" data-i18n="btn_open_logs"></button>
+      <button id="btnOpenData" type="button" data-i18n="btn_open_data"></button>
+    </div>
+    <h2 data-i18n="about_licences"></h2>
+    <p data-i18n="about_licence_text"></p>
+    <p data-i18n="about_privacy"></p>
+  </section>
+
+  <section id="viewWizard" class="view" hidden></section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<dialog id="confirmDlg" class="confirm">
+  <p id="confirmText"></p>
+  <div class="row">
+    <button id="confirmYes" type="button" class="primary" data-i18n="confirm_ok"></button>
+    <button id="confirmNo" type="button" data-i18n="confirm_cancel"></button>
+  </div>
+</dialog>
+
+<script src="static/i18n.js"></script>
+<script src="static/owl.js"></script>
+<script src="static/review.js"></script>
+<script src="static/wizard_i18n.js"></script>
+<script src="static/wizard.js"></script>
+<script src="static/app.js"></script></body></html>

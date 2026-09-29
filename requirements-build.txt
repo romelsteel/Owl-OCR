@@ -1,0 +1,3 @@
+# Build tools for py packaging\build.py; installed into build\venv together with requirements.txt.
+pyinstaller==6.21.0
+pyinstaller-hooks-contrib==2026.6

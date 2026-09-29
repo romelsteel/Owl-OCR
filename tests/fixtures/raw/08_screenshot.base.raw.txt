@@ -1,0 +1,6 @@
+<|det|>header [17, 33, 154, 72]<|/det|>Nastavení účtu
+<|det|>text [34, 158, 247, 192]<|/det|>Přihlášený uživatel: Jiří Šebesta
+<|det|>text [34, 240, 343, 274]<|/det|>Poslední přihlášení: úterý 22. září 2026, 18:47
+<|det|>text [34, 319, 448, 353]<|/det|>Záhoování je zapnuté. Přišti záhoa proběhne dnes ve 23:00.
+<|det|>text [34, 398, 271, 432]<|/det|>Úložiště: využito 41,6 GB z 200 GB
+<|det|>text [34, 480, 316, 512]<|/det|>Změnit heslo Odhlásit se Smazat účet

@@ -1,0 +1,15 @@
+[project]
+name = "owlocr"
+version = "0.1.0"
+description = "Offline OCR for Windows built on Baidu's Unlimited-OCR model"
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+authors = [{ name = "Tomáš Burcal" }]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -m 'not gpu'"
+markers = [
+    "gpu: needs an NVIDIA GPU with at least 9500 MiB free VRAM and the installed engine",
+    "slow: takes more than a few seconds (starts real Python processes that import torch)",
+]

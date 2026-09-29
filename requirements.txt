@@ -1,0 +1,9 @@
+Pillow>=12.1,<13
+pypdfium2>=5.10,<6
+spylls==0.1.7
+pikepdf==10.14.0
+reportlab==5.0.1
+python-docx==1.2.0
+numpy<3
+Flask>=3.1,<4
+pywebview>=6.2,<7

@@ -1,0 +1,8 @@
+<|det|>title [90, 77, 312, 100]<|/det|>Buněčné dýchání
+<|det|>text [92, 105, 870, 169]<|/det|>Buněčné dýchání je soubor dějů, při nichž buňka získává energii postupným štěpením organických látek. U většiny organismů probíhá za přístupu kyslíku a jeho konečnými produkty jsou oxid uhličitý a voda.
+<|det|>title [94, 180, 220, 203]<|/det|>Glykolýza
+<|det|>text [94, 207, 856, 270]<|/det|>První fází je glykolýza, která se odehrává v cytoplazmě. Z jedné molekuly glukózy vznikají dvě molekuly pryvátu, čistý zisk činí dvě molekuly ATP a dvě molekuly NADH. Glykolýza nevyžaduje kyslík, a proto ji nacházíme i u nejjednodušších bakterií.
+<|det|>title [98, 283, 294, 305]<|/det|>Krebsův cyklus
+<|det|>text [97, 310, 872, 373]<|/det|>Pryuvát přechází do matrix mitochondrialne, kde se přeměňuje na acetylkoenzym A. Ten vstupuje do Krebsova cyklu, v němž se uhlíkatý řetězce úplně odbourá. Uvolněné elektrony přenášejí koenzymy na dýchací řetězce ve vnitřní mitochondrialní membráně.
+<|det|>title [101, 386, 304, 408]<|/det|>Dýchací řetězec
+<|det|>text [101, 412, 893, 475]<|/det|>Přenos elektronů pohání čerpání protonů do mezimembránového prostoru. Vznikly spád využívá enzym ATP-syntáza k tvorbě ATP. Na jednu molekulu glukózy tak buňka získá přibližně třicet molekul ATP, tedy patnáctkrát více než při samotné glykolýze.

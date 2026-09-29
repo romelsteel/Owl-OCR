@@ -1,0 +1,35 @@
+{
+  "url_template": "https://raw.githubusercontent.com/LibreOffice/dictionaries/{commit}/{path}",
+  "languages": {
+    "cs": {
+      "name": "cs_CZ",
+      "source": "https://github.com/LibreOffice/dictionaries/tree/b3a1c0be50d1ad0b404070124463fb4af90bbe39/cs_CZ",
+      "commit": "b3a1c0be50d1ad0b404070124463fb4af90bbe39",
+      "licence": "GNU GPL (version not stated in README_en.txt)",
+      "decision": "download on demand into dictionaries_dir(), unmodified, with its licence text; never bundled in v1",
+      "files": [
+        {"name": "cs_CZ.LICENSE.txt", "path": "cs_CZ/README_en.txt", "size": 13105,
+         "sha256": "0fe6d017aa91ffb58146d19160f8207900cc0c49d5fffef0b1a7d3a364cb29bd"},
+        {"name": "cs_CZ.aff", "path": "cs_CZ/cs_CZ.aff", "size": 111575,
+         "sha256": "7ecb20620ecd46ebd9c36f3f33e69dd4eda385cba5b2bb4e6bc396d910e297f7"},
+        {"name": "cs_CZ.dic", "path": "cs_CZ/cs_CZ.dic", "size": 3656362,
+         "sha256": "d8e8c88c006fdae72dac8c85df11b0c99a773e05a4ab0fcbe92244876668ca74"}
+      ]
+    },
+    "en": {
+      "name": "en_US",
+      "source": "https://github.com/LibreOffice/dictionaries/tree/e7f163feb2beaf526135132d8716e68e19d2716e/en",
+      "commit": "e7f163feb2beaf526135132d8716e68e19d2716e",
+      "licence": "SCOWL licence (permissive, BSD/MIT-like; see README_en_US.txt)",
+      "decision": "download on demand into dictionaries_dir(), unmodified, with its licence text; never bundled in v1",
+      "files": [
+        {"name": "en_US.LICENSE.txt", "path": "en/README_en_US.txt", "size": 15732,
+         "sha256": "168b4c01cb841f766a72f310b065c04d09cff46376c37a81d799593ce751c371"},
+        {"name": "en_US.aff", "path": "en/en_US.aff", "size": 3205,
+         "sha256": "e746c882dd6f303c2c46e7452804b9201115a6942cfeb15f18f8edf774d2e24e"},
+        {"name": "en_US.dic", "path": "en/en_US.dic", "size": 551762,
+         "sha256": "f0b1a234bd178bdd01875b2a392a9647f888b8fe879f79c52aae62c2759b3647"}
+      ]
+    }
+  }
+}
